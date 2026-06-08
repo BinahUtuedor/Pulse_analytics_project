@@ -1,7 +1,5 @@
 import pandas as pd
 
-from enrich import fetch_holidays, enrich_with_holidays
-
 def load_olist(data_path='data/raw/'):
     orders   = pd.read_csv(f'{data_path}olist_orders_dataset.csv')
     items    = pd.read_csv(f'{data_path}olist_order_items_dataset.csv')
@@ -29,15 +27,3 @@ def load_olist(data_path='data/raw/'):
     print(f'Loaded {len(df):,} rows')
     return df
     
-if __name__ == '__main__':
-    orders_df = load_olist()
-
-    # Olist dataset spans 2016-2018
-    holidays_df = fetch_holidays([2016, 2017, 2018], country_code='BR')
-
-    enriched_df = enrich_with_holidays(
-        orders_df,
-        holidays_df
-    )
-
-    print(enriched_df.head())
