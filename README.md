@@ -611,6 +611,6 @@ This project is intended for educational, portfolio, and demonstration purposes.
 
 # Author
 
-**Pulse Analytics**
+**Binah Utuedor*
 
 An end-to-end data engineering project showcasing modern ETL development, API integration, PostgreSQL loading, and analytics-ready data modeling.
