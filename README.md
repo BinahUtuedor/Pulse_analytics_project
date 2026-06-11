@@ -415,6 +415,9 @@ docs/images/revenue_forecast.png
 
 ## Forecast Components
 
+```text
+docs/images/revenue_components.png
+```
 ![Forecast Components](docs/images/revenue_components.png)
 
 ---
