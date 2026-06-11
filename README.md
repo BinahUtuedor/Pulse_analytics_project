@@ -410,7 +410,9 @@ docs/images/revenue_forecast.png
 ```
 
 ```markdown
-![Revenue Forecast](docs/images/revenue_forecast.png)
+![Revenue Forecast](docs\images\revenue_forecast.png)
+
+
 ```
 
 ---
@@ -418,7 +420,7 @@ docs/images/revenue_forecast.png
 ## Forecast Components
 
 ```markdown
-![Forecast Components](docs/images/revenue_components.png)
+![Forecast Components](docs\images\revenue_components.png)
 ```
 ---
 
