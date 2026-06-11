@@ -1,0 +1,3 @@
+is_holiday,total_orders,total_revenue,avg_order_value
+False,95124,15243159.6,160.24514948908794
+True,2764,423378.68,153.17607814761215

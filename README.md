@@ -1,423 +1,484 @@
 # Pulse Analytics
 
-## End-to-End Data Engineering Pipeline
+### End-to-End Data Engineering & Analytics Platform for E-Commerce Intelligence
 
-**E-Commerce Analytics Enrichment using the Olist Dataset, Public Holiday APIs, and PostgreSQL**
-
-![Python](https://img.shields.io/badge/Python-3.x-blue)
-![Pandas](https://img.shields.io/badge/Pandas-Data%20Processing-green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Relational_DB-blue)
+![Pandas](https://img.shields.io/badge/Pandas-Data_Processing-green)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-orange)
+![Prophet](https://img.shields.io/badge/Forecasting-Prophet-purple)
+![ETL](https://img.shields.io/badge/Data_Engineering-ETL-success)
+![Analytics](https://img.shields.io/badge/Analytics-Business_Intelligence-yellow)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
 
-# Overview
+# Project Overview
 
-Pulse Analytics is an end-to-end data engineering project that transforms raw Brazilian e-commerce transaction data into an analytics-ready dataset.
+![Project Overview](docs/images/project_overview.png)
 
-The pipeline ingests multiple Olist marketplace datasets, enriches transactions with Brazilian public holiday information from the Nager.Date API, performs data quality checks, engineers analytical features, and loads the final dataset into PostgreSQL for downstream reporting and business intelligence.
+Pulse Analytics is an end-to-end Data Engineering and Analytics platform built using the Brazilian Olist E-Commerce dataset.
 
-The project demonstrates practical data engineering concepts including:
+The project transforms raw transactional data into an analytics-ready warehouse enriched with public holiday intelligence, engineered business features, SQL reporting layers, and machine-learning-based revenue forecasting.
 
-* Data ingestion and consolidation
-* REST API integration
-* Data enrichment
-* Data cleaning and validation
-* Feature engineering
-* Relational database loading
-* SQL-based quality assurance
-* Analytics-ready schema design
+The solution demonstrates production-style ETL development, data quality validation, relational modeling, business intelligence reporting, and time-series forecasting.
+
+---
+
+# Business Problem
+
+E-commerce organizations need reliable visibility into:
+
+* Revenue trends
+* Holiday sales performance
+* Delivery efficiency
+* Geographic sales distribution
+* Customer purchasing behavior
+* Future revenue expectations
+
+Raw operational datasets rarely provide these insights directly.
+
+Pulse Analytics solves this by creating a complete analytics pipeline that transforms raw transactional data into decision-ready datasets.
+
+---
+
+# Key Business Use Cases
+
+## Revenue Trend Analysis
+
+Track:
+
+* Daily revenue
+* Monthly revenue
+* Average order value
+* Order volume trends
+
+Business Questions:
+
+* Which months generate the highest revenue?
+* Is revenue growing over time?
+* What is the average order value?
+
+---
+
+## Holiday Sales Impact Analysis
+
+Analyze how public holidays influence:
+
+* Order volume
+* Revenue
+* Customer purchasing behavior
+
+Business Questions:
+
+* Do holidays increase revenue?
+* Which holidays generate the most sales?
+* Are customers spending more during holidays?
+
+---
+
+## Delivery Performance Monitoring
+
+Monitor fulfillment performance across regions.
+
+Metrics:
+
+* Average delivery days
+* Fastest deliveries
+* Slowest deliveries
+
+Business Questions:
+
+* Which states have the best delivery performance?
+* Where do logistics bottlenecks exist?
+
+---
+
+## Geographic Revenue Analysis
+
+Evaluate sales distribution by:
+
+* State
+* City
+
+Business Questions:
+
+* Which regions generate the most revenue?
+* Which markets are underperforming?
+
+---
+
+## Revenue Forecasting
+
+Machine Learning forecasting using Prophet enables:
+
+* Revenue prediction
+* Trend detection
+* Seasonality analysis
+
+Business Questions:
+
+* What revenue can be expected over the next 90 days?
+* Are there identifiable seasonal patterns?
 
 ---
 
 # Architecture
 
 ```text
-                +------------------+
-                | Olist CSV Files  |
-                +--------+---------+
-                         |
-                         v
-               +-------------------+
-               | Data Ingestion    |
-               +--------+----------+
-                        |
-                        v
-               +-------------------+
-               | Holiday API       |
-               | (Nager.Date)      |
-               +--------+----------+
-                        |
-                        v
-               +-------------------+
-               | Data Enrichment   |
-               +--------+----------+
-                        |
-                        v
-               +-------------------+
-               | Data Cleaning     |
-               +--------+----------+
-                        |
-                        v
-               +-------------------+
-               | Feature Engineering|
-               +--------+----------+
-                        |
-                        v
-               +-------------------+
-               | PostgreSQL Load   |
-               +--------+----------+
-                        |
-                        v
-               +-------------------+
-               | Validation & QA   |
-               +-------------------+
+                    ┌───────────────────┐
+                    │   Olist Dataset   │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Data Ingestion    │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Holiday API       │
+                    │ Nager.Date        │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Data Enrichment   │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Data Cleaning     │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ Feature Engineering│
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ PostgreSQL        │
+                    │ Analytics Layer   │
+                    └─────────┬─────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ SQL Reporting   │ │ Revenue Analysis│ │ Forecasting     │
+│ Views           │ │ Scripts         │ │ Prophet ML      │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
 ---
 
-# Pipeline Phases
+# Data Pipeline Workflow
 
 ## Phase 1 — Data Ingestion
 
-The ingestion layer loads and consolidates multiple Olist datasets into a single DataFrame.
-
-### Source Datasets
+Sources:
 
 * Orders
-* Order Items
 * Customers
+* Order Items
 * Payments
 
-### Processing
+Processing:
 
-#### Payments Aggregation
+* Payment aggregation
+* Item aggregation
+* Dataset consolidation
 
-```python
-payments.groupby('order_id').agg(
-    total_payment=('payment_value', 'sum')
-)
-```
+Output:
 
-#### Order Items Aggregation
-
-```python
-items.groupby('order_id').agg(
-    item_count=('order_item_id', 'count'),
-    total_price=('price', 'sum'),
-    total_freight=('freight_value', 'sum')
-)
-```
-
-#### Dataset Consolidation
-
-```python
-orders
-    .merge(customers, on='customer_id')
-    .merge(items_agg, on='order_id')
-    .merge(payments_agg, on='order_id')
-```
-
-### Output
-
-Approximately 100,000 consolidated order records.
+~100,000 enriched order records
 
 ---
 
-## Phase 2 — Holiday API Enrichment
+## Phase 2 — Public Holiday Enrichment
 
-The pipeline retrieves Brazilian public holiday information from the Nager.Date API.
+Source:
 
-### API Endpoint
+Nager.Date Public Holiday API
+
+Endpoint:
 
 ```http
-GET https://date.nager.at/api/v3/PublicHolidays/{year}/BR
+https://date.nager.at/api/v3/PublicHolidays/{year}/BR
 ```
 
-### Years Processed
+Years Processed:
 
 ```python
 [2016, 2017, 2018]
 ```
 
-### Enrichment Logic
-
-Orders are matched to holidays using the purchase date.
-
-Added columns:
+Added Features:
 
 * holiday_name
 * holiday_type
 * holiday_date
+* is_holiday
 
 ---
 
-## Phase 3 — Data Cleaning
+## Phase 3 — Data Quality & Validation
 
-Data quality procedures ensure consistency and reliability before analytics.
-
-### Cleaning Operations
-
-* Remove duplicate order IDs
-* Remove rows with missing purchase timestamps
-* Filter invalid order statuses
-* Handle missing holiday values
-* Convert timestamps to datetime
-* Standardize numeric columns
-
-### Accepted Order Statuses
-
-```python
-[
-    'delivered',
-    'shipped',
-    'approved',
-    'processing'
-]
-```
-
-### Quality Checks
+Validation Rules:
 
 ```python
 assert df['order_id'].nunique() == len(df)
+
 assert df['order_purchase_timestamp'].isna().sum() == 0
+
 assert (df['total_price'] >= 0).all()
 ```
+
+Quality Controls:
+
+* Duplicate removal
+* Null handling
+* Datetime standardization
+* Revenue validation
 
 ---
 
 ## Phase 4 — Feature Engineering
 
-Business and analytical features are generated to support reporting and data exploration.
+Generated Features:
 
-### Generated Features
-
-| Feature          | Description                        |
-| ---------------- | ---------------------------------- |
-| is_holiday       | Order occurred on a public holiday |
-| order_date       | Calendar date                      |
-| order_year       | Purchase year                      |
-| order_month      | Purchase month                     |
-| order_week       | ISO week number                    |
-| day_of_week      | Day name                           |
-| hour_of_day      | Purchase hour                      |
-| is_weekend       | Weekend indicator                  |
-| days_to_delivery | Delivery duration in days          |
-| total_revenue    | Product value + freight            |
-
-### Revenue Calculation
-
-```python
-df['total_revenue'] = (
-    df['total_price'] +
-    df['total_freight']
-)
-```
-
-### Delivery Lead Time
-
-```python
-df['days_to_delivery'] = (
-    df['order_delivered_customer_date']
-    - df['order_purchase_timestamp']
-).dt.days
-```
+| Feature          | Description        |
+| ---------------- | ------------------ |
+| is_holiday       | Holiday indicator  |
+| order_year       | Purchase year      |
+| order_month      | Purchase month     |
+| order_week       | ISO week           |
+| day_of_week      | Weekday            |
+| hour_of_day      | Purchase hour      |
+| is_weekend       | Weekend flag       |
+| total_revenue    | Revenue metric     |
+| days_to_delivery | Delivery lead time |
 
 ---
 
-## Phase 5 — PostgreSQL Load
+## Phase 5 — PostgreSQL Warehouse Load
 
-The final dataset is loaded into PostgreSQL for analytical querying.
+Technology:
 
-### Database Setup
+* PostgreSQL
+* SQLAlchemy
 
-```sql
-CREATE DATABASE pulse_analytics;
+Load Strategy:
 
-CREATE USER pulse_user
-WITH PASSWORD 'your_password';
+1. Create table
+2. Truncate existing records
+3. Reload fresh dataset
+4. Preserve indexes
 
-GRANT ALL PRIVILEGES
-ON DATABASE pulse_analytics
-TO pulse_user;
-```
+Rows Loaded:
 
-### Connection String
+~98,000+ records
 
-```python
-CONN_STR = (
-    "postgresql://pulse_user:"
-    "your_password@localhost:5432/pulse_analytics"
-)
-```
+---
 
-### Load Strategy
+# Analytics Data Model
 
-The pipeline:
+## Fact Table
 
-1. Creates the analytics table if it does not exist
-2. Truncates existing data
-3. Loads fresh records
-4. Preserves indexes and schema
-
-```python
-load_to_postgres(
-    df,
-    CONN_STR,
-    table_name='olist_enriched'
-)
-```
-
-### Database Table
-
-```sql
-olist_enriched
-```
+### olist_enriched
 
 Contains:
 
-* Transaction data
-* Customer attributes
+* Orders
+* Customers
+* Revenue
+* Delivery metrics
 * Holiday attributes
-* Engineered features
-* Revenue metrics
+* Time dimensions
 
----
-
-## Analytics Schema
-
-### Core Metrics
-
-| Column           | Description        |
-| ---------------- | ------------------ |
-| total_price      | Product value      |
-| total_freight    | Shipping cost      |
-| total_payment    | Payment amount     |
-| total_revenue    | Product + freight  |
-| days_to_delivery | Delivery lead time |
-
-### Time Dimensions
-
-| Column      | Description   |
-| ----------- | ------------- |
-| order_date  | Calendar date |
-| order_year  | Year          |
-| order_month | Month         |
-| order_week  | ISO week      |
-| day_of_week | Weekday       |
-| hour_of_day | Hour          |
-
-### Holiday Dimensions
-
-| Column       | Description       |
-| ------------ | ----------------- |
-| is_holiday   | Holiday indicator |
-| holiday_name | Holiday name      |
-| holiday_type | Holiday category  |
-| holiday_date | Holiday date      |
-
----
-
-# SQL Optimization
-
-The schema includes indexes for common analytical queries.
+Primary Key:
 
 ```sql
-CREATE INDEX IF NOT EXISTS idx_order_date
-ON olist_enriched(order_date);
-
-CREATE INDEX IF NOT EXISTS idx_is_holiday
-ON olist_enriched(is_holiday);
-
-CREATE INDEX IF NOT EXISTS idx_order_state
-ON olist_enriched(customer_state);
+order_id
 ```
 
 ---
 
-# Validation & QA
+# SQL Reporting Layer
 
-Validation queries are provided in:
+The warehouse exposes reusable analytical views.
+
+## Revenue Views
+
+```sql
+vw_daily_revenue
+vw_monthly_revenue
+```
+
+---
+
+## Holiday Views
+
+```sql
+vw_holiday_sales
+vw_holiday_details
+```
+
+---
+
+## Delivery Views
+
+```sql
+vw_delivery_performance
+```
+
+---
+
+## Geographic Views
+
+```sql
+vw_state_sales
+vw_city_sales
+```
+
+---
+
+# Forecasting
+
+Technology:
+
+* Prophet
+* Pandas
+* Matplotlib
+
+Forecast Horizon:
+
+```python
+90 Days
+```
+
+Outputs:
 
 ```text
-sql/validate.sql
+outputs/forecast/
+
+├── revenue_forecast.csv
+├── revenue_forecast.png
+└── revenue_components.png
 ```
 
-### Checks Performed
+Generated Insights:
 
-#### Row Count Verification
+* Trend
+* Weekly seasonality
+* Long-term growth projections
 
-```sql
-SELECT COUNT(*)
-FROM olist_enriched;
+---
+
+# Results
+
+## Revenue Summary
+
+| Metric              | Value  |
+| ------------------- | ------ |
+| Total Revenue       | 15.67M |
+| Orders              | 97K+   |
+| Holiday Orders      | 2.7K+  |
+| Average Order Value | ~160   |
+
+---
+
+## Holiday Analysis
+
+| Holiday Flag | Orders | Revenue |
+| ------------ | ------ | ------- |
+| False        | 95,124 | 15.24M  |
+| True         | 2,764  | 423K    |
+
+Key Finding:
+
+Holiday periods generated meaningful revenue volume but slightly lower average order values compared to non-holiday purchases.
+
+---
+
+# Screenshots
+
+## Revenue Forecast
+
+> Add screenshot after generating:
+
+```text
+docs/images/revenue_forecast.png
 ```
 
-#### Null Audits
-
-```sql
-SELECT
-    SUM(CASE WHEN order_purchase_timestamp IS NULL THEN 1 ELSE 0 END),
-    SUM(CASE WHEN total_revenue IS NULL THEN 1 ELSE 0 END)
-FROM olist_enriched;
-```
-
-#### Holiday Analysis
-
-```sql
-SELECT
-    is_holiday,
-    COUNT(*)
-FROM olist_enriched
-GROUP BY is_holiday;
-```
-
-#### Revenue Comparison
-
-```sql
-SELECT
-    is_holiday,
-    ROUND(AVG(total_revenue),2)
-FROM olist_enriched
-GROUP BY is_holiday;
-```
-
-#### Yearly Trends
-
-```sql
-SELECT
-    order_year,
-    COUNT(*)
-FROM olist_enriched
-GROUP BY order_year
-ORDER BY order_year;
+```markdown
+![Revenue Forecast](docs/images/revenue_forecast.png)
 ```
 
 ---
 
-# Project Structure
+## Forecast Components
+
+```markdown
+![Forecast Components](docs/images/revenue_components.png)
+```
+
+---
+
+## PostgreSQL Analytics Query
+
+```markdown
+![SQL Results](docs/images/postgres_query.png)
+```
+
+---
+
+## Power BI Dashboard (Optional Future Enhancement)
+
+```markdown
+![Power BI Dashboard](docs/images/powerbi_dashboard.png)
+```
+
+---
+
+# Repository Structure
 
 ```text
 pulse-analytics/
-│
-├── data/
-│   └── raw/
-│       └── Olist CSV files
+
+├── analytics/
+│   ├── revenue_analysis.py
+│   ├── holiday_analysis.py
+│   ├── extract_forecast_data.py
+│   └── forecast.py
 │
 ├── pipeline/
 │   ├── ingest.py
 │   ├── enrich.py
 │   ├── clean.py
 │   ├── features.py
-│   └── load.py
+│   ├── load.py
+│   └── create_views.py
 │
 ├── sql/
 │   ├── create_table.sql
+│   ├── revenue_views.sql
+│   ├── holiday_views.sql
+│   ├── delivery_views.sql
+│   ├── geography_views.sql
 │   └── validate.sql
 │
-├── docs/
-│   ├── data_lineage.md
-│   └── data_dictionary.md
+├── outputs/
+│   ├── extracts/
+│   ├── revenue/
+│   ├── holiday/
+│   └── forecast/
 │
+├── docs/
+│   ├── data_dictionary.md
+│   ├── data_lineage.md
+│   └── images/
+│        └── project_overview.png
 ├── main.py
 ├── requirements.txt
 └── README.md
@@ -425,187 +486,82 @@ pulse-analytics/
 
 ---
 
-# Installation
+# Technology Stack
 
-## 1. Clone Repository
+## Data Engineering
 
-```bash
-git clone https://github.com/your-username/pulse-analytics.git
+* Python
+* Pandas
+* Requests
+* SQLAlchemy
 
-cd pulse-analytics
-```
+## Database
 
-## 2. Create Virtual Environment
+* PostgreSQL
 
-```bash
-python -m venv venv
-```
+## Analytics
 
-### Windows
+* SQL
+* Pandas
 
-```bash
-venv\Scripts\activate
-```
+## Forecasting
 
-### Mac/Linux
+* Prophet
+* Matplotlib
 
-```bash
-source venv/bin/activate
-```
+## Data Sources
 
-## 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-# Dataset Setup
-
-Download the Olist Brazilian E-Commerce Dataset from Kaggle:
-
-https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
-
-Place the CSV files in:
-
-```text
-data/raw/
-```
-
-Required files:
-
-```text
-olist_orders_dataset.csv
-olist_order_items_dataset.csv
-olist_customers_dataset.csv
-olist_order_payments_dataset.csv
-```
-
----
-
-# PostgreSQL Usage
-
-### Connect to the Database
-
-```bash
-psql -U pulse_user -d pulse_analytics
-```
-
-Exit:
-
-```sql
-\q
-```
-
-### Run SQL Commands Directly
-
-```bash
-psql -U pulse_user -d pulse_analytics \
--c "DROP TABLE IF EXISTS olist_enriched;"
-```
-
-### Execute SQL Files
-
-```bash
-psql -U pulse_user -d pulse_analytics \
--f sql/create_table.sql
-```
-
----
-
-# Running the Pipeline
-
-Execute the complete workflow:
-
-```bash
-python main.py
-```
-
-Expected output:
-
-```text
---- Phase 1: Ingest ---
-Loaded 100,000 rows
-
---- Phase 2: Enrich ---
-Fetched holiday records
-
---- Phase 3: Clean ---
-All quality checks passed
-
---- Phase 4: Feature Engineering ---
-
---- Phase 5: Load ---
-Loaded rows into olist_enriched
-
-Pipeline complete.
-```
-
----
-
-# Example Business Questions
-
-This dataset can help answer:
-
-* Do holidays increase order volume?
-* Do holidays influence revenue?
-* Which weekdays generate the most sales?
-* Which Brazilian states generate the most revenue?
-* How long do deliveries take on average?
-* What purchasing hours drive peak activity?
-* Are holiday purchases associated with higher order values?
+* Olist Marketplace Dataset
+* Nager.Date API
 
 ---
 
 # Future Enhancements
 
-Potential next steps:
+### Data Engineering
 
-* Incremental loading strategy
-* Docker containerization
+* Incremental loading
+* CDC implementation
 * Airflow orchestration
 * dbt transformations
-* Automated unit testing
-* Data quality monitoring
-* AWS deployment
-* GCP deployment
-* Azure deployment
-* CI/CD automation
+* Dockerization
+
+### Cloud
+
+* AWS RDS
+* AWS S3
+* AWS Glue
+* Azure Data Factory
+* BigQuery
+
+### Analytics
+
 * Power BI dashboards
 * Tableau dashboards
+* Streamlit application
+
+### DevOps
+
+* GitHub Actions
+* CI/CD pipelines
+* Automated testing
 
 ---
 
-# Requirements
-
-```text
-pandas==2.2.0
-requests==2.31.0
-sqlalchemy==2.0.0
-psycopg2-binary==2.9.9
-```
-
----
-
-# Key Skills Demonstrated
+# Skills Demonstrated
 
 * Data Engineering
-* ETL / ELT Design
-* API Integration
+* ETL Development
+* Data Modeling
+* PostgreSQL
+* SQL Optimization
 * Data Quality Validation
+* API Integration
 * Feature Engineering
-* SQL Development
-* PostgreSQL Administration
-* Analytics Data Modeling
-* Python Data Processing
-* Pipeline Orchestration
-
----
-
-# License
-
-This project is intended for educational, portfolio, and demonstration purposes.
+* Business Analytics
+* Forecasting
+* Python Automation
+* Analytics Engineering
 
 ---
 
@@ -613,4 +569,6 @@ This project is intended for educational, portfolio, and demonstration purposes.
 
 **Binah Utuedor**
 
-An end-to-end data engineering project showcasing modern ETL development, API integration, PostgreSQL loading, and analytics-ready data modeling.
+Data Engineer | Analytics Engineer | Business Intelligence Developer
+
+Built to demonstrate production-style ETL pipelines, analytics engineering, SQL reporting, and forecasting workflows using Python and PostgreSQL.

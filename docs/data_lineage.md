@@ -2,18 +2,94 @@
 
 ## Overview
 
-This document describes the movement and transformation of data through the Pulse Analytics ETL pipeline, from source ingestion to final storage in PostgreSQL.
+This document describes the end-to-end movement, transformation, enrichment, validation, storage, and consumption of data throughout the Pulse Analytics platform.
+
+The lineage captures how raw e-commerce transaction data is transformed into an analytics-ready warehouse that supports reporting, forecasting, and business intelligence use cases.
+
+---
+
+# Lineage Summary
+
+```text
+Raw Olist Data Sources
+│
+├── Orders
+├── Customers
+├── Order Items
+└── Payments
+│
+▼
+Data Ingestion
+(pipeline/ingest.py)
+│
+▼
+Merged Orders Dataset
+(orders_df)
+│
+▼
+Holiday API Enrichment
+(pipeline/enrich.py)
+│
+▼
+Enriched Dataset
+(enriched_df)
+│
+▼
+Data Cleaning & Validation
+(pipeline/clean.py)
+│
+▼
+Clean Dataset
+(clean_df)
+│
+▼
+Feature Engineering
+(pipeline/features.py)
+│
+▼
+Analytics Dataset
+(feature_df)
+│
+▼
+PostgreSQL Warehouse
+(olist_enriched)
+│
+├── Revenue Views
+├── Holiday Views
+├── Delivery Views
+└── Geography Views
+│
+├───────────────┬───────────────┬───────────────┐
+│               │               │               │
+▼               ▼               ▼               ▼
+Revenue      Holiday       Geography      Delivery
+Analysis     Analysis      Analysis       Analysis
+│
+▼
+Forecast Dataset
+│
+▼
+Prophet Forecasting
+│
+▼
+Forecast Outputs
+(CSV + PNG)
+```
 
 ---
 
 # Source Systems
 
-## Olist Orders Dataset
+The pipeline consumes four Olist transactional datasets and one external API source.
+
+---
+
+## Orders Dataset
 
 Source File:
 
 ```text
-olist_orders_dataset.csv
+data/raw/olist_orders_dataset.csv
 ```
 
 Provides:
@@ -21,16 +97,29 @@ Provides:
 * Order identifiers
 * Order status
 * Purchase timestamps
+* Approval timestamps
 * Delivery timestamps
+
+Primary Columns:
+
+```text
+order_id
+customer_id
+order_status
+order_purchase_timestamp
+order_approved_at
+order_delivered_customer_date
+order_estimated_delivery_date
+```
 
 ---
 
-## Olist Customers Dataset
+## Customers Dataset
 
 Source File:
 
 ```text
-olist_customers_dataset.csv
+data/raw/olist_customers_dataset.csv
 ```
 
 Provides:
@@ -38,38 +127,65 @@ Provides:
 * Customer identifiers
 * Geographic information
 
+Primary Columns:
+
+```text
+customer_id
+customer_unique_id
+customer_zip_code_prefix
+customer_city
+customer_state
+```
+
 ---
 
-## Olist Order Items Dataset
+## Order Items Dataset
 
 Source File:
 
 ```text
-olist_order_items_dataset.csv
+data/raw/olist_order_items_dataset.csv
 ```
 
 Provides:
 
-* Item-level pricing
-* Freight charges
+* Product pricing
+* Freight costs
+
+Primary Columns:
+
+```text
+order_id
+order_item_id
+price
+freight_value
+```
 
 ---
 
-## Olist Payments Dataset
+## Payments Dataset
 
 Source File:
 
 ```text
-olist_order_payments_dataset.csv
+data/raw/olist_order_payments_dataset.csv
 ```
 
 Provides:
 
-* Payment transaction values
+* Payment transactions
+* Payment values
+
+Primary Columns:
+
+```text
+order_id
+payment_value
+```
 
 ---
 
-## Holiday API
+## Public Holiday API
 
 External Source:
 
@@ -77,27 +193,41 @@ External Source:
 https://date.nager.at
 ```
 
+Endpoint:
+
+```http
+GET /api/v3/PublicHolidays/{year}/BR
+```
+
 Provides:
 
-* Brazilian public holidays
-* Holiday names
-* Holiday classifications
+* Holiday date
+* Holiday name
+* Holiday classification
+
+Retrieved Years:
+
+```python
+[2016, 2017, 2018]
+```
 
 ---
 
-# ETL Pipeline Flow
-
-## Phase 1 – Ingestion
+# Phase 1 — Data Ingestion
 
 Module:
 
-```python
+```text
 pipeline/ingest.py
 ```
 
-### Processing Steps
+Purpose:
 
-#### Payment Aggregation
+Combine multiple Olist datasets into a unified order-level dataset.
+
+---
+
+## Payment Aggregation
 
 Source:
 
@@ -118,7 +248,15 @@ Output:
 total_payment
 ```
 
-#### Item Aggregation
+Result:
+
+```text
+payments_agg
+```
+
+---
+
+## Item Aggregation
 
 Source:
 
@@ -143,9 +281,17 @@ total_price
 total_freight
 ```
 
-#### Dataset Consolidation
+Result:
 
-Joins:
+```text
+items_agg
+```
+
+---
+
+## Dataset Consolidation
+
+Join Strategy:
 
 ```text
 orders
@@ -154,28 +300,40 @@ LEFT JOIN items_agg
 LEFT JOIN payments_agg
 ```
 
-Output:
+Output Dataset:
 
 ```text
 orders_df
 ```
 
+Grain:
+
+```text
+One row per order
+```
+
 ---
 
-## Phase 2 – Enrichment
+# Phase 2 — Holiday Enrichment
 
 Module:
 
-```python
+```text
 pipeline/enrich.py
 ```
 
-### Holiday Retrieval
+Purpose:
 
-API Call:
+Enhance transactions with Brazilian public holiday information.
+
+---
+
+## Holiday Retrieval
+
+Input:
 
 ```text
-Nager.Date Public Holiday API
+Nager.Date API
 ```
 
 Output:
@@ -184,7 +342,17 @@ Output:
 holidays_df
 ```
 
-### Holiday Join
+Columns Added:
+
+```text
+holiday_date
+holiday_name
+holiday_type
+```
+
+---
+
+## Holiday Matching
 
 Join Condition:
 
@@ -192,15 +360,13 @@ Join Condition:
 order_date = holiday_date
 ```
 
-Output Columns:
+Join Type:
 
 ```text
-holiday_name
-holiday_type
-holiday_date
+LEFT JOIN
 ```
 
-Result:
+Output Dataset:
 
 ```text
 enriched_df
@@ -208,31 +374,43 @@ enriched_df
 
 ---
 
-## Phase 3 – Data Cleaning
+# Phase 3 — Data Cleaning
 
 Module:
 
-```python
+```text
 pipeline/clean.py
 ```
 
-### Transformations
+Purpose:
 
-#### Remove Duplicate Orders
+Apply quality controls and standardize data types.
+
+---
+
+## Duplicate Removal
+
+Transformation:
 
 ```python
-drop_duplicates(order_id)
+drop_duplicates(subset=["order_id"])
 ```
 
-#### Remove Invalid Orders
+---
+
+## Null Timestamp Validation
+
+Transformation:
 
 ```python
-dropna(order_purchase_timestamp)
+dropna(subset=["order_purchase_timestamp"])
 ```
 
-#### Filter Active Orders
+---
 
-Retained Statuses:
+## Order Status Filtering
+
+Retained Values:
 
 ```text
 delivered
@@ -241,20 +419,36 @@ approved
 processing
 ```
 
-#### Null Handling
+---
+
+## Holiday Standardization
+
+Transformation:
 
 ```python
-holiday_name = 'None'
-holiday_type = 'None'
+holiday_name.fillna("None")
+holiday_type.fillna("None")
 ```
 
-#### Data Type Standardization
+---
 
-Convert all date columns to datetime.
+## Datetime Conversion
 
-#### Numeric Standardization
+Columns Standardized:
 
-Convert:
+```text
+order_purchase_timestamp
+order_approved_at
+order_delivered_carrier_date
+order_delivered_customer_date
+order_estimated_delivery_date
+```
+
+---
+
+## Numeric Standardization
+
+Columns Standardized:
 
 ```text
 item_count
@@ -263,9 +457,7 @@ total_freight
 total_payment
 ```
 
-to numeric types.
-
-Output:
+Output Dataset:
 
 ```text
 clean_df
@@ -273,30 +465,36 @@ clean_df
 
 ---
 
-## Phase 4 – Feature Engineering
+# Phase 4 — Feature Engineering
 
 Module:
 
-```python
+```text
 pipeline/features.py
 ```
 
-### Derived Columns
+Purpose:
 
-| Target Column    | Transformation                       |
-| ---------------- | ------------------------------------ |
-| is_holiday       | holiday_name != 'None'               |
-| order_date       | Extract date from purchase timestamp |
-| order_year       | Extract year                         |
-| order_month      | Extract month                        |
-| order_week       | Extract ISO week                     |
-| day_of_week      | Extract weekday name                 |
-| hour_of_day      | Extract purchase hour                |
-| is_weekend       | dayofweek >= 5                       |
-| days_to_delivery | delivery date - purchase date        |
-| total_revenue    | total_price + total_freight          |
+Generate business-ready analytical attributes.
 
-Output:
+---
+
+## Derived Features
+
+| Output Column    | Source             | Logic                  |
+| ---------------- | ------------------ | ---------------------- |
+| is_holiday       | holiday_name       | holiday_name != 'None' |
+| order_date       | purchase timestamp | Extract date           |
+| order_year       | purchase timestamp | Extract year           |
+| order_month      | purchase timestamp | Extract month          |
+| order_week       | purchase timestamp | Extract ISO week       |
+| day_of_week      | purchase timestamp | Extract weekday        |
+| hour_of_day      | purchase timestamp | Extract hour           |
+| is_weekend       | purchase timestamp | dayofweek >= 5         |
+| days_to_delivery | delivery timestamp | Date difference        |
+| total_revenue    | price + freight    | Calculated metric      |
+
+Output Dataset:
 
 ```text
 feature_df
@@ -304,19 +502,21 @@ feature_df
 
 ---
 
-## Phase 5 – Loading
+# Phase 5 — Warehouse Load
 
 Module:
 
-```python
+```text
 pipeline/load.py
 ```
 
-### Target Database
+Purpose:
 
-```text
-PostgreSQL
-```
+Load curated analytics data into PostgreSQL.
+
+---
+
+## Target Environment
 
 Database:
 
@@ -324,24 +524,185 @@ Database:
 pulse_analytics
 ```
 
-Target Table:
+Table:
 
 ```text
 olist_enriched
 ```
 
-### Loading Strategy
+Storage Type:
 
-1. Create table if not exists
-2. Truncate existing table
-3. Append fresh dataset
-4. Commit load
+```text
+PostgreSQL Relational Warehouse
+```
+
+---
+
+## Load Strategy
+
+1. Create analytics table
+2. Apply indexes
+3. Truncate existing records
+4. Load fresh dataset
+5. Commit transaction
 
 Output:
 
 ```text
 olist_enriched
 ```
+
+---
+
+# Analytics Layer
+
+The warehouse exposes analytical views for downstream reporting.
+
+---
+
+## Revenue Views
+
+Source:
+
+```text
+olist_enriched
+```
+
+Views:
+
+```text
+vw_daily_revenue
+vw_monthly_revenue
+```
+
+Business Purpose:
+
+* Revenue reporting
+* Trend analysis
+* KPI tracking
+
+---
+
+## Holiday Views
+
+Views:
+
+```text
+vw_holiday_sales
+vw_holiday_details
+```
+
+Business Purpose:
+
+* Holiday performance analysis
+* Seasonal reporting
+
+---
+
+## Delivery Views
+
+Views:
+
+```text
+vw_delivery_performance
+```
+
+Business Purpose:
+
+* Logistics monitoring
+* Delivery SLA reporting
+
+---
+
+## Geography Views
+
+Views:
+
+```text
+vw_state_sales
+vw_city_sales
+```
+
+Business Purpose:
+
+* Geographic performance analysis
+* Market intelligence
+
+---
+
+# Forecasting Lineage
+
+Module:
+
+```text
+analytics/extract_forecast_data.py
+```
+
+Purpose:
+
+Generate forecasting dataset from warehouse data.
+
+---
+
+## Forecast Dataset Extraction
+
+Source:
+
+```text
+olist_enriched
+```
+
+Query:
+
+```sql
+SELECT
+    order_date,
+    SUM(total_revenue)
+FROM olist_enriched
+GROUP BY order_date
+```
+
+Output:
+
+```text
+outputs/extracts/forecast_daily_revenue.csv
+```
+
+---
+
+## Forecast Model
+
+Module:
+
+```text
+analytics/forecast.py
+```
+
+Framework:
+
+```text
+Prophet
+```
+
+Input:
+
+```text
+forecast_daily_revenue.csv
+```
+
+Output:
+
+```text
+outputs/forecast/revenue_forecast.csv
+outputs/forecast/revenue_forecast.png
+outputs/forecast/revenue_components.png
+```
+
+Business Purpose:
+
+* Revenue forecasting
+* Trend analysis
+* Seasonality detection
 
 ---
 
@@ -361,50 +722,100 @@ olist_enriched
 | total_price              | order_items.price                  | SUM             |
 | total_freight            | order_items.freight_value          | SUM             |
 | total_payment            | payments.payment_value             | SUM             |
-| holiday_date             | Holiday API                        | Date match      |
-| holiday_name             | Holiday API                        | Date match      |
-| holiday_type             | Holiday API                        | Date match      |
+| holiday_date             | Holiday API                        | Date Match      |
+| holiday_name             | Holiday API                        | Date Match      |
+| holiday_type             | Holiday API                        | Date Match      |
 | is_holiday               | holiday_name                       | Derived         |
+| order_date               | purchase timestamp                 | Derived         |
 | order_year               | purchase timestamp                 | Derived         |
 | order_month              | purchase timestamp                 | Derived         |
 | order_week               | purchase timestamp                 | Derived         |
 | day_of_week              | purchase timestamp                 | Derived         |
 | hour_of_day              | purchase timestamp                 | Derived         |
 | is_weekend               | purchase timestamp                 | Derived         |
-| days_to_delivery         | delivery and purchase timestamps   | Date difference |
+| days_to_delivery         | delivery timestamp                 | Date Difference |
 | total_revenue            | total_price + total_freight        | Calculated      |
 
 ---
 
 # Data Quality Checkpoints
 
-## During Cleaning
+## Pipeline Validation
 
-* Duplicate order removal
+Performed During:
+
+```text
+pipeline/clean.py
+```
+
+Checks:
+
+* Duplicate order detection
 * Null timestamp validation
-* Order status filtering
-* Numeric type validation
-
-## During Validation
-
-Validation SQL checks:
-
-* Total row count
-* Null timestamp count
-* Null revenue count
-* Holiday distribution
-* Revenue by holiday status
-* Orders by year
+* Status filtering
+* Datetime validation
+* Numeric validation
 
 ---
 
-# Final Data Product
+## Warehouse Validation
 
-| Attribute      | Value             |
-| -------------- | ----------------- |
-| Destination    | PostgreSQL        |
-| Database       | pulse_analytics   |
-| Table          | olist_enriched    |
-| Grain          | One row per order |
-| Refresh Type   | Full Refresh      |
-| Consumer Layer | Analytics & BI    |
+Performed Using:
+
+```text
+sql/validate.sql
+```
+
+Checks:
+
+* Total row count
+* Revenue completeness
+* Holiday completeness
+* Holiday distribution
+* Revenue comparison
+* Year-over-year order counts
+
+---
+
+# Final Data Products
+
+| Data Product               | Consumer           |
+| -------------------------- | ------------------ |
+| olist_enriched             | Analytics          |
+| vw_daily_revenue           | Reporting          |
+| vw_monthly_revenue         | Reporting          |
+| vw_holiday_sales           | Business Analysis  |
+| vw_delivery_performance    | Operations         |
+| vw_state_sales             | Geography Analysis |
+| forecast_daily_revenue.csv | Forecasting        |
+| revenue_forecast.csv       | Data Science       |
+| revenue_forecast.png       | Stakeholders       |
+| revenue_components.png     | Stakeholders       |
+
+---
+
+# Data Consumers
+
+The curated datasets support:
+
+* Business Intelligence Dashboards
+* Executive KPI Reporting
+* Revenue Analytics
+* Holiday Performance Analysis
+* Delivery Operations Monitoring
+* Geographic Sales Analysis
+* Revenue Forecasting
+* Future Power BI Dashboards
+* Future Tableau Dashboards
+
+---
+
+# Ownership
+
+**Project:** Pulse Analytics
+
+**Author:** Binah Utuedor
+
+**Purpose:** End-to-End Data Engineering & Analytics Platform
+
+**Last Updated:** June 2026
