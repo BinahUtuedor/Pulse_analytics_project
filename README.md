@@ -409,19 +409,14 @@ Holiday periods generated meaningful revenue volume but slightly lower average o
 docs/images/revenue_forecast.png
 ```
 
-```markdown
 ![Revenue Forecast](docs/images/revenue_forecast.png)
-
-
-```
 
 ---
 
 ## Forecast Components
 
-```markdown
 ![Forecast Components](docs/images/revenue_components.png)
-```
+
 ---
 
 # Repository Structure
