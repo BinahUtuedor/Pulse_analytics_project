@@ -405,8 +405,6 @@ Holiday periods generated meaningful revenue volume but slightly lower average o
 
 ## Revenue Forecast
 
-> Add screenshot after generating:
-
 ```text
 docs/images/revenue_forecast.png
 ```
@@ -422,23 +420,6 @@ docs/images/revenue_forecast.png
 ```markdown
 ![Forecast Components](docs/images/revenue_components.png)
 ```
-
----
-
-## PostgreSQL Analytics Query
-
-```markdown
-![SQL Results](docs/images/postgres_query.png)
-```
-
----
-
-## Power BI Dashboard (Optional Future Enhancement)
-
-```markdown
-![Power BI Dashboard](docs/images/powerbi_dashboard.png)
-```
-
 ---
 
 # Repository Structure
