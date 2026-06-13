@@ -9,7 +9,6 @@
 ![Prophet](https://img.shields.io/badge/Forecasting-Prophet-purple)
 ![ETL](https://img.shields.io/badge/Data_Engineering-ETL-success)
 ![Analytics](https://img.shields.io/badge/Analytics-Business_Intelligence-yellow)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ------------------------------------------------------------------------
 
