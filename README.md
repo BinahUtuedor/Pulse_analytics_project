@@ -1,4 +1,4 @@
-# Pulse Analytics
+# 🚀 Pulse Analytics
 
 ### End-to-End Data Engineering & Analytics Platform for E-Commerce Intelligence
 
@@ -11,121 +11,128 @@
 ![Analytics](https://img.shields.io/badge/Analytics-Business_Intelligence-yellow)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
----
+------------------------------------------------------------------------
 
-# Project Overview
+# 📖 Project Overview
 
 ![Project Overview](docs/images/project_overview.png)
 
-Pulse Analytics is an end-to-end Data Engineering and Analytics platform built using the Brazilian Olist E-Commerce dataset.
+Pulse Analytics is an end-to-end Data Engineering and Analytics platform
+built using the Brazilian Olist E-Commerce dataset.
 
-The project transforms raw transactional data into an analytics-ready warehouse enriched with public holiday intelligence, engineered business features, SQL reporting layers, and machine-learning-based revenue forecasting.
+The project transforms raw transactional data into an analytics-ready
+warehouse enriched with public holiday intelligence, engineered business
+features, SQL reporting layers, and machine-learning-based revenue
+forecasting.
 
-The solution demonstrates production-style ETL development, data quality validation, relational modeling, business intelligence reporting, and time-series forecasting.
+The solution demonstrates production-style ETL development, data quality
+validation, relational modeling, business intelligence reporting, and
+time-series forecasting.
 
----
+------------------------------------------------------------------------
 
-# Business Problem
+# 🎯 Business Problem
 
 E-commerce organizations need reliable visibility into:
 
-* Revenue trends
-* Holiday sales performance
-* Delivery efficiency
-* Geographic sales distribution
-* Customer purchasing behavior
-* Future revenue expectations
+-   Revenue trends
+-   Holiday sales performance
+-   Delivery efficiency
+-   Geographic sales distribution
+-   Customer purchasing behavior
+-   Future revenue expectations
 
 Raw operational datasets rarely provide these insights directly.
 
-Pulse Analytics solves this by creating a complete analytics pipeline that transforms raw transactional data into decision-ready datasets.
+Pulse Analytics solves this by creating a complete analytics pipeline
+that transforms raw transactional data into decision-ready datasets.
 
----
+------------------------------------------------------------------------
 
-# Key Business Use Cases
+# 💼 Key Business Use Cases
 
-## Revenue Trend Analysis
+## 📈 Revenue Trend Analysis
 
 Track:
 
-* Daily revenue
-* Monthly revenue
-* Average order value
-* Order volume trends
+-   Daily revenue
+-   Monthly revenue
+-   Average order value
+-   Order volume trends
 
 Business Questions:
 
-* Which months generate the highest revenue?
-* Is revenue growing over time?
-* What is the average order value?
+-   Which months generate the highest revenue?
+-   Is revenue growing over time?
+-   What is the average order value?
 
----
+------------------------------------------------------------------------
 
-## Holiday Sales Impact Analysis
+## 🎉 Holiday Sales Impact Analysis
 
 Analyze how public holidays influence:
 
-* Order volume
-* Revenue
-* Customer purchasing behavior
+-   Order volume
+-   Revenue
+-   Customer purchasing behavior
 
 Business Questions:
 
-* Do holidays increase revenue?
-* Which holidays generate the most sales?
-* Are customers spending more during holidays?
+-   Do holidays increase revenue?
+-   Which holidays generate the most sales?
+-   Are customers spending more during holidays?
 
----
+------------------------------------------------------------------------
 
-## Delivery Performance Monitoring
+## 🚚 Delivery Performance Monitoring
 
 Monitor fulfillment performance across regions.
 
 Metrics:
 
-* Average delivery days
-* Fastest deliveries
-* Slowest deliveries
+-   Average delivery days
+-   Fastest deliveries
+-   Slowest deliveries
 
 Business Questions:
 
-* Which states have the best delivery performance?
-* Where do logistics bottlenecks exist?
+-   Which states have the best delivery performance?
+-   Where do logistics bottlenecks exist?
 
----
+------------------------------------------------------------------------
 
-## Geographic Revenue Analysis
+## 🗺️ Geographic Revenue Analysis
 
 Evaluate sales distribution by:
 
-* State
-* City
+-   State
+-   City
 
 Business Questions:
 
-* Which regions generate the most revenue?
-* Which markets are underperforming?
+-   Which regions generate the most revenue?
+-   Which markets are underperforming?
 
----
+------------------------------------------------------------------------
 
-## Revenue Forecasting
+## 🔮 Revenue Forecasting
 
 Machine Learning forecasting using Prophet enables:
 
-* Revenue prediction
-* Trend detection
-* Seasonality analysis
+-   Revenue prediction
+-   Trend detection
+-   Seasonality analysis
 
 Business Questions:
 
-* What revenue can be expected over the next 90 days?
-* Are there identifiable seasonal patterns?
+-   What revenue can be expected over the next 90 days?
+-   Are there identifiable seasonal patterns?
 
----
+------------------------------------------------------------------------
 
-# Architecture
+# 🏗️ Architecture
 
-```text
+``` text
                     ┌───────────────────┐
                     │   Olist Dataset   │
                     └─────────┬─────────┘
@@ -170,32 +177,32 @@ Business Questions:
 └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
----
+------------------------------------------------------------------------
 
-# Data Pipeline Workflow
+# ⚙️ Data Pipeline Workflow
 
-## Phase 1 — Data Ingestion
+## 📥 Phase 1 --- Data Ingestion
 
 Sources:
 
-* Orders
-* Customers
-* Order Items
-* Payments
+-   Orders
+-   Customers
+-   Order Items
+-   Payments
 
 Processing:
 
-* Payment aggregation
-* Item aggregation
-* Dataset consolidation
+-   Payment aggregation
+-   Item aggregation
+-   Dataset consolidation
 
 Output:
 
-~100,000 enriched order records
+\~100,000 enriched order records
 
----
+------------------------------------------------------------------------
 
-## Phase 2 — Public Holiday Enrichment
+## 🎊 Phase 2 --- Public Holiday Enrichment
 
 Source:
 
@@ -203,30 +210,30 @@ Nager.Date Public Holiday API
 
 Endpoint:
 
-```http
+``` http
 https://date.nager.at/api/v3/PublicHolidays/{year}/BR
 ```
 
 Years Processed:
 
-```python
+``` python
 [2016, 2017, 2018]
 ```
 
 Added Features:
 
-* holiday_name
-* holiday_type
-* holiday_date
-* is_holiday
+-   holiday_name
+-   holiday_type
+-   holiday_date
+-   is_holiday
 
----
+------------------------------------------------------------------------
 
-## Phase 3 — Data Quality & Validation
+## ✅ Phase 3 --- Data Quality & Validation
 
 Validation Rules:
 
-```python
+``` python
 assert df['order_id'].nunique() == len(df)
 
 assert df['order_purchase_timestamp'].isna().sum() == 0
@@ -236,52 +243,52 @@ assert (df['total_price'] >= 0).all()
 
 Quality Controls:
 
-* Duplicate removal
-* Null handling
-* Datetime standardization
-* Revenue validation
+-   Duplicate removal
+-   Null handling
+-   Datetime standardization
+-   Revenue validation
 
----
+------------------------------------------------------------------------
 
-## Phase 4 — Feature Engineering
+## 🧠 Phase 4 --- Feature Engineering
 
 Generated Features:
 
-| Feature          | Description        |
-| ---------------- | ------------------ |
-| is_holiday       | Holiday indicator  |
-| order_year       | Purchase year      |
-| order_month      | Purchase month     |
-| order_week       | ISO week           |
-| day_of_week      | Weekday            |
-| hour_of_day      | Purchase hour      |
-| is_weekend       | Weekend flag       |
-| total_revenue    | Revenue metric     |
-| days_to_delivery | Delivery lead time |
+  Feature            Description
+  ------------------ --------------------
+  is_holiday         Holiday indicator
+  order_year         Purchase year
+  order_month        Purchase month
+  order_week         ISO week
+  day_of_week        Weekday
+  hour_of_day        Purchase hour
+  is_weekend         Weekend flag
+  total_revenue      Revenue metric
+  days_to_delivery   Delivery lead time
 
----
+------------------------------------------------------------------------
 
-## Phase 5 — PostgreSQL Warehouse Load
+## 🗄️ Phase 5 --- PostgreSQL Warehouse Load
 
 Technology:
 
-* PostgreSQL
-* SQLAlchemy
+-   PostgreSQL
+-   SQLAlchemy
 
 Load Strategy:
 
-1. Create table
-2. Truncate existing records
-3. Reload fresh dataset
-4. Preserve indexes
+1.  Create table
+2.  Truncate existing records
+3.  Reload fresh dataset
+4.  Preserve indexes
 
 Rows Loaded:
 
-~98,000+ records
+\~98,000+ records
 
----
+------------------------------------------------------------------------
 
-# Analytics Data Model
+# 🧩 Analytics Data Model
 
 ## Fact Table
 
@@ -289,77 +296,77 @@ Rows Loaded:
 
 Contains:
 
-* Orders
-* Customers
-* Revenue
-* Delivery metrics
-* Holiday attributes
-* Time dimensions
+-   Orders
+-   Customers
+-   Revenue
+-   Delivery metrics
+-   Holiday attributes
+-   Time dimensions
 
 Primary Key:
 
-```sql
+``` sql
 order_id
 ```
 
----
+------------------------------------------------------------------------
 
-# SQL Reporting Layer
+# 📝 SQL Reporting Layer
 
 The warehouse exposes reusable analytical views.
 
 ## Revenue Views
 
-```sql
+``` sql
 vw_daily_revenue
 vw_monthly_revenue
 ```
 
----
+------------------------------------------------------------------------
 
 ## Holiday Views
 
-```sql
+``` sql
 vw_holiday_sales
 vw_holiday_details
 ```
 
----
+------------------------------------------------------------------------
 
 ## Delivery Views
 
-```sql
+``` sql
 vw_delivery_performance
 ```
 
----
+------------------------------------------------------------------------
 
 ## Geographic Views
 
-```sql
+``` sql
 vw_state_sales
 vw_city_sales
 ```
 
----
+------------------------------------------------------------------------
 
-# Forecasting
+# 🔮 Forecasting
 
 Technology:
 
-* Prophet
-* Pandas
-* Matplotlib
+-   Prophet
+-   Pandas
+-   Matplotlib
 
 Forecast Horizon:
 
-```python
+``` python
 90 Days
 ```
 
 Outputs:
 
-```text
+``` text
 outputs/forecast/
 
 ├── revenue_forecast.csv
@@ -369,62 +376,64 @@ outputs/forecast/
 
 Generated Insights:
 
-* Trend
-* Weekly seasonality
-* Long-term growth projections
+-   Trend
+-   Weekly seasonality
+-   Long-term growth projections
 
----
+------------------------------------------------------------------------
 
-# Results
+# 📊 Results
 
-## Revenue Summary
+## 💰 Revenue Summary
 
-| Metric              | Value  |
-| ------------------- | ------ |
-| Total Revenue       | 15.67M |
-| Orders              | 97K+   |
-| Holiday Orders      | 2.7K+  |
-| Average Order Value | ~160   |
+  Metric                Value
+  --------------------- --------
+  Total Revenue         15.67M
+  Orders                97K+
+  Holiday Orders        2.7K+
+  Average Order Value   \~160
 
----
+------------------------------------------------------------------------
 
-## Holiday Analysis
+## 🎄 Holiday Analysis
 
-| Holiday Flag | Orders | Revenue |
-| ------------ | ------ | ------- |
-| False        | 95,124 | 15.24M  |
-| True         | 2,764  | 423K    |
+  Holiday Flag   Orders   Revenue
+  -------------- -------- ---------
+  False          95,124   15.24M
+  True           2,764    423K
 
 Key Finding:
 
-Holiday periods generated meaningful revenue volume but slightly lower average order values compared to non-holiday purchases.
+Holiday periods generated meaningful revenue volume but slightly lower
+average order values compared to non-holiday purchases.
 
----
+------------------------------------------------------------------------
 
-# Screenshots
+# 🖼️ Screenshots
 
-## Revenue Forecast
+## 📈 Revenue Forecast
 
-```text
+``` text
 docs/images/revenue_forecast.png
 ```
 
 ![Revenue Forecast](docs/images/revenue_forecast.png)
 
----
+------------------------------------------------------------------------
 
-## Forecast Components
+## ⚙️ Forecast Components
 
-```text
+``` text
 docs/images/revenue_components.png
 ```
+
 ![Forecast Components](docs/images/revenue_components.png)
 
----
+------------------------------------------------------------------------
 
-# Repository Structure
+# 🗂️ Repository Structure
 
-```text
+``` text
 pulse-analytics/
 
 ├── analytics/
@@ -465,91 +474,93 @@ pulse-analytics/
 └── README.md
 ```
 
----
+------------------------------------------------------------------------
 
-# Technology Stack
+# 🛠️ Technology Stack
 
-## Data Engineering
+## 🔧 Data Engineering
 
-* Python
-* Pandas
-* Requests
-* SQLAlchemy
+-   Python
+-   Pandas
+-   Requests
+-   SQLAlchemy
 
-## Database
+## 🗄️ Database
 
-* PostgreSQL
+-   PostgreSQL
 
-## Analytics
+## 📊 Analytics
 
-* SQL
-* Pandas
+-   SQL
+-   Pandas
 
-## Forecasting
+## 🔮 Forecasting
 
-* Prophet
-* Matplotlib
+-   Prophet
+-   Matplotlib
 
-## Data Sources
+## 🌐 Data Sources
 
-* Olist Marketplace Dataset
-* Nager.Date API
+-   Olist Marketplace Dataset
+-   Nager.Date API
 
----
+------------------------------------------------------------------------
 
-# Future Enhancements
+# 🚀 Future Enhancements
 
-### Data Engineering
+### 🔧 Data Engineering
 
-* Incremental loading
-* CDC implementation
-* Airflow orchestration
-* dbt transformations
-* Dockerization
+-   Incremental loading
+-   CDC implementation
+-   Airflow orchestration
+-   dbt transformations
+-   Dockerization
 
-### Cloud
+### ☁️ Cloud
 
-* AWS RDS
-* AWS S3
-* AWS Glue
-* Azure Data Factory
-* BigQuery
+-   AWS RDS
+-   AWS S3
+-   AWS Glue
+-   Azure Data Factory
+-   BigQuery
 
-### Analytics
+### 📈 Analytics
 
-* Power BI dashboards
-* Tableau dashboards
-* Streamlit application
+-   Power BI dashboards
+-   Tableau dashboards
+-   Streamlit application
 
-### DevOps
+### 🔄 DevOps
 
-* GitHub Actions
-* CI/CD pipelines
-* Automated testing
+-   GitHub Actions
+-   CI/CD pipelines
+-   Automated testing
 
----
+------------------------------------------------------------------------
 
-# Skills Demonstrated
+# 🏆 Skills Demonstrated
 
-* Data Engineering
-* ETL Development
-* Data Modeling
-* PostgreSQL
-* SQL Optimization
-* Data Quality Validation
-* API Integration
-* Feature Engineering
-* Business Analytics
-* Forecasting
-* Python Automation
-* Analytics Engineering
+-   Data Engineering
+-   ETL Development
+-   Data Modeling
+-   PostgreSQL
+-   SQL Optimization
+-   Data Quality Validation
+-   API Integration
+-   Feature Engineering
+-   Business Analytics
+-   Forecasting
+-   Python Automation
+-   Analytics Engineering
 
----
+------------------------------------------------------------------------
 
-# Author
+# 👤 Author
 
 **Binah Utuedor**
 
-Data Engineer | Analytics Engineer | Business Intelligence Developer
+Data Engineer \| Analytics Engineer \| Business Intelligence Developer
 
-Built to demonstrate production-style ETL pipelines, analytics engineering, SQL reporting, and forecasting workflows using Python and PostgreSQL.
+Built to demonstrate production-style ETL pipelines, analytics
+engineering, SQL reporting, and forecasting workflows using Python and
+PostgreSQL.
